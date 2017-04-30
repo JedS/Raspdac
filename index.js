@@ -16,6 +16,27 @@ function ControllerRaspDac(context) {
       self.context = context;
       self.commandRouter = this.context.coreCommand;
       self.logger = this.context.logger;
+}
+
+ControllerRaspDac.prototype.onVolumioStart = function()
+{
+      var self = this;
+      self.logger.info("RaspDac initialized");
+      return libQ.resolve();
+}
+
+ControllerRaspDac.prototype.getConfigurationFiles = function()
+{
+      return ['config.json'];
+}
+
+ControllerRaspDac.prototype.addToBrowseSources = function () {
+      var self = this;
+};
+
+// Plugin methods -----------------------------------------------------------------------------
+ControllerRaspDac.prototype.onStart = function() {
+      var self = this;
 
       // Set Button GPIO
       self.softShutdown = new Gpio(4, 'out');
@@ -41,37 +62,14 @@ function ControllerRaspDac(context) {
       });
 
       // Set LCD
-      self.raspdacDisplay = new raspdacDisplay(context);
-}
-
-ControllerRaspDac.prototype.onVolumioStart = function()
-{
-      var self = this;
-      self.logger.info("RaspDac initialized");
-}
-
-ControllerRaspDac.prototype.getConfigurationFiles = function()
-{
-      return ['config.json'];
-}
-
-ControllerRaspDac.prototype.addToBrowseSources = function () {
-      var self = this;
-};
-
-// Plugin methods -----------------------------------------------------------------------------
-ControllerRaspDac.prototype.onStart = function() {
-      var self = this;
-
-      var defer=libQ.defer();
+      self.raspdacDisplay = new raspdacDisplay(self.context);
 
       self.configFile=self.commandRouter.pluginManager.getConfigurationFile(self.context,'config.json');
 
       //self.applyConf(self.getConf());
       self.logger.info("RaspDac started");
-      defer.resolve();
 
-      return defer.promise;
+      return libQ.resolve();
 };
 
 ControllerRaspDac.prototype.onStop = function() {
@@ -82,6 +80,8 @@ ControllerRaspDac.prototype.onStop = function() {
       self.softShutdown.unexport();
 
       self.raspdacDisplay.close();
+      
+      return libQ.resolve();
 };
 
 ControllerRaspDac.prototype.onRestart = function() {
