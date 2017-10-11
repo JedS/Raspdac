@@ -25,6 +25,21 @@ ControllerRaspDac.prototype.onVolumioStart = function()
       return libQ.resolve();
 }
 
+ControllerRaspDac.prototype.onVolumioReboot = function()
+{
+      var self = this;
+      self.raspdacDisplay.close();
+      self.softShutdown.writeSync(1);
+}
+
+ControllerRaspDac.prototype.onVolumioShutdown = function()
+{
+      var self = this;
+      self.raspdacDisplay.close();
+      self.softShutdown.writeSync(1);
+      setTimeout(self.bootOk.softShutdown, 1000, 0);
+}
+
 ControllerRaspDac.prototype.getConfigurationFiles = function()
 {
       return ['config.json'];
@@ -44,22 +59,6 @@ ControllerRaspDac.prototype.onStart = function() {
       self.bootOk = new Gpio(22, 'high');
 
       self.shutdownButton.watch(self.hardShutdownRequest.bind(this));
-
-      // Use loggin filters for soft reboot watcher
-      self.logger.filters.push(function(level, msg) {
-            var self = this;
-            if (msg === 'Shutting Down') {
-                  self.raspdacDisplay.close();
-                  self.softShutdown.writeSync(1);
-                  setTimeout(self.softshutdown.bind(this), 1000);
-            }
-            else if(msg === 'Rebooting') {
-                  self.raspdacDisplay.close();
-                  self.softShutdown.writeSync(1);
-            }
-
-            return msg;
-      });
 
       // Set LCD
       self.raspdacDisplay = new raspdacDisplay(self.context);
