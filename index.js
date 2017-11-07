@@ -1,3 +1,4 @@
+
 'use strict';
 
 var io = require('socket.io-client');
@@ -35,9 +36,16 @@ ControllerRaspDac.prototype.onVolumioReboot = function()
 ControllerRaspDac.prototype.onVolumioShutdown = function()
 {
       var self = this;
+      var defer = libQ.defer();
+      
       self.raspdacDisplay.close();
       self.softShutdown.writeSync(1);
-      setTimeout(self.bootOk.softShutdown, 1000, 0);
+      setTimeout(function(){
+            self.softShutdown.writeSync(0);
+            defer.resolve();
+          }, 1000);
+      
+      return defer;
 }
 
 ControllerRaspDac.prototype.getConfigurationFiles = function()
