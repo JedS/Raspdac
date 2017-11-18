@@ -1,3 +1,4 @@
+
 'use strict';
 
 var io = require('socket.io-client');
@@ -35,9 +36,16 @@ ControllerRaspDac.prototype.onVolumioReboot = function()
 ControllerRaspDac.prototype.onVolumioShutdown = function()
 {
       var self = this;
+      var defer = libQ.defer();
+      
       self.raspdacDisplay.close();
       self.softShutdown.writeSync(1);
-      setTimeout(self.bootOk.softShutdown, 1000, 0);
+      setTimeout(function(){
+            self.softShutdown.writeSync(0);
+            defer.resolve();
+          }, 1000);
+      
+      return defer;
 }
 
 ControllerRaspDac.prototype.getConfigurationFiles = function()
@@ -163,18 +171,8 @@ ControllerRaspDac.prototype.pushQueue = function(state) {
 
 // Button Management
 ControllerRaspDac.prototype.hardShutdownRequest = function(err, value) {
-     var self = this;
-     self.bootOk.writeSync(1);
-     setTimeout( self.hardshutdown.bind(this), 1000);
-};
-
-ControllerRaspDac.prototype.hardshutdown = function() {
-      var self = this;
-      self.bootOk.writeSync(0);
+// if the hard shutdown is activated should be ok to just shutdown. 
+      // the "bootOK" GPIO will turn off as part of the system shutdown.
+      // ...after which the power will be cut a few seconds later by the hardware
       self.commandRouter.shutdown();
-};
-
-ControllerRaspDac.prototype.softshutdown = function() {
-      var self = this;
-      self.softShutdown.writeSync(0);
 };
